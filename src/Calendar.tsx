@@ -86,7 +86,17 @@ export default function Calendar() {
     setDay(day, next);
   }
 
-  const HOME_OFFICE_LIMIT = 10;
+  const [homeOfficeLimit, setHomeOfficeLimit] = useState(() => {
+    const stored = localStorage.getItem("office-days-limit");
+    return stored ? Number(stored) : 10;
+  });
+
+  function handleLimitChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const val = Math.max(0, Number(e.target.value) || 0);
+    setHomeOfficeLimit(val);
+    localStorage.setItem("office-days-limit", String(val));
+  }
+
   const remoteUsed = counts.remote;
 
   return (
@@ -164,23 +174,33 @@ export default function Calendar() {
 
       {/* Remote budget */}
       <div className="mt-4 p-3 rounded-lg bg-zinc-100 dark:bg-zinc-800">
-        <div className="flex justify-between text-sm text-zinc-700 dark:text-zinc-300">
+        <div className="flex justify-between items-center text-sm text-zinc-700 dark:text-zinc-300">
           <span>Home-office days used</span>
-          <span
-            className={
-              remoteUsed > HOME_OFFICE_LIMIT
-                ? "text-rose-500 font-bold"
-                : "font-semibold"
-            }
-          >
-            {remoteUsed} / {HOME_OFFICE_LIMIT}
+          <span className="flex items-center gap-1">
+            <span
+              className={
+                remoteUsed > homeOfficeLimit
+                  ? "text-rose-500 font-bold"
+                  : "font-semibold"
+              }
+            >
+              {remoteUsed}
+            </span>
+            <span>/</span>
+            <input
+              type="number"
+              min={0}
+              value={homeOfficeLimit}
+              onChange={handleLimitChange}
+              className="w-12 text-center font-semibold bg-transparent border-b border-zinc-400 dark:border-zinc-500 focus:outline-none focus:border-blue-500"
+            />
           </span>
         </div>
         <div className="mt-2 h-2 bg-zinc-300 dark:bg-zinc-600 rounded-full overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all ${remoteUsed > HOME_OFFICE_LIMIT ? "bg-rose-500" : "bg-amber-400"}`}
+            className={`h-full rounded-full transition-all ${remoteUsed > homeOfficeLimit ? "bg-rose-500" : "bg-amber-400"}`}
             style={{
-              width: `${Math.min((remoteUsed / HOME_OFFICE_LIMIT) * 100, 100)}%`,
+              width: `${homeOfficeLimit > 0 ? Math.min((remoteUsed / homeOfficeLimit) * 100, 100) : 0}%`,
             }}
           />
         </div>
