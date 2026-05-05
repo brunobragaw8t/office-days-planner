@@ -11,9 +11,9 @@ const STATUS_CYCLE: (DayStatus | null)[] = [
 ];
 
 const STATUS_STYLES: Record<DayStatus, string> = {
-  office: "bg-blue-500 text-white",
-  remote: "bg-amber-400 text-amber-950",
-  vacation: "bg-emerald-500 text-white",
+  office: "bg-amber-400 text-amber-950",
+  remote: "bg-emerald-500 text-white",
+  vacation: "bg-blue-500 text-white",
   holiday: "bg-rose-400 text-white",
 };
 
