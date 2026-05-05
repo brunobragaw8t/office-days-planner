@@ -105,7 +105,7 @@ export default function Calendar() {
       <div className="flex items-center justify-between mb-6">
         <button
           onClick={handlePrev}
-          className="p-2 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+          className="p-2 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-zinc-700 dark:text-zinc-200"
         >
           ←
         </button>
@@ -114,7 +114,7 @@ export default function Calendar() {
         </h2>
         <button
           onClick={handleNext}
-          className="p-2 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+          className="p-2 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-zinc-700 dark:text-zinc-200"
         >
           →
         </button>
