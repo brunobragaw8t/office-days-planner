@@ -198,7 +198,7 @@ export default function Calendar() {
         </div>
         <div className="mt-2 h-2 bg-zinc-300 dark:bg-zinc-600 rounded-full overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all ${remoteUsed > homeOfficeLimit ? "bg-rose-500" : "bg-amber-400"}`}
+            className={`h-full rounded-full transition-all ${remoteUsed > homeOfficeLimit ? "bg-rose-500" : "bg-emerald-500"}`}
             style={{
               width: `${homeOfficeLimit > 0 ? Math.min((remoteUsed / homeOfficeLimit) * 100, 100) : 0}%`,
             }}
