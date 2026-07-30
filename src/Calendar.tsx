@@ -40,6 +40,52 @@ function computeCounts(data: MonthData): MonthCounts {
   return counts;
 }
 
+function getCarryOverBalance(
+  year: number,
+  month: number,
+  limit: number
+): number {
+  let firstY = year;
+  let firstM = month;
+  let foundFirst = false;
+
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (!key) continue;
+    const m = key.match(/^office-days-(\d{4})-(\d{1,2})$/);
+    if (!m) continue;
+    const ky = Number(m[1]);
+    const km = Number(m[2]);
+    if (!foundFirst || ky < firstY || (ky === firstY && km < firstM)) {
+      firstY = ky;
+      firstM = km;
+      foundFirst = true;
+    }
+  }
+
+  if (!foundFirst) return 0;
+
+  let totalUsed = 0;
+  let totalMonths = 0;
+  let curY = firstY;
+  let curM = firstM;
+
+  while (curY < year || (curY === year && curM < month)) {
+    const stored = localStorage.getItem(`office-days-${curY}-${curM}`);
+    if (stored) {
+      const data: MonthData = JSON.parse(stored);
+      for (const status of Object.values(data)) {
+        if (status === "remote") totalUsed++;
+      }
+    }
+    totalMonths++;
+    curM++;
+    if (curM > 11) { curM = 0; curY++; }
+  }
+
+  return totalMonths * limit - totalUsed;
+}
+
 const MONTH_NAMES = [
   "January",
   "February",
@@ -98,6 +144,8 @@ export default function Calendar() {
   }
 
   const remoteUsed = counts.remote;
+  const carryOver = getCarryOverBalance(year, month, remoteLimit);
+  const totalAvailable = remoteLimit + carryOver;
 
   return (
     <div className="max-w-lg mx-auto p-4 select-none">
@@ -118,6 +166,18 @@ export default function Calendar() {
         >
           →
         </button>
+      </div>
+
+      {/* Remote limit config */}
+      <div className="flex items-center justify-end mb-4 text-sm">
+        <label className="text-zinc-500 dark:text-zinc-400 mr-2">Remote limit</label>
+        <input
+          type="number"
+          min={0}
+          value={remoteLimit}
+          onChange={handleLimitChange}
+          className="w-12 text-center font-semibold text-white bg-zinc-800 rounded border border-zinc-600 focus:outline-none focus:border-blue-500"
+        />
       </div>
 
       {/* Weekday headers */}
@@ -176,31 +236,21 @@ export default function Calendar() {
       <div className="mt-4 p-3 rounded-lg bg-zinc-100 dark:bg-zinc-800">
         <div className="flex justify-between items-center text-sm text-zinc-700 dark:text-zinc-300">
           <span>Remote days used</span>
-          <span className="flex items-center gap-1">
-            <span
-              className={
-                remoteUsed > remoteLimit
-                  ? "text-rose-500 font-bold"
-                  : "font-semibold"
-              }
-            >
-              {remoteUsed}
-            </span>
-            <span>/</span>
-            <input
-              type="number"
-              min={0}
-              value={remoteLimit}
-              onChange={handleLimitChange}
-              className="w-12 text-center font-semibold bg-transparent border-b border-zinc-400 dark:border-zinc-500 focus:outline-none focus:border-blue-500"
-            />
+          <span
+            className={
+              remoteUsed > totalAvailable
+                ? "text-rose-500 font-bold"
+                : "font-semibold"
+            }
+          >
+            {remoteUsed} / {totalAvailable}
           </span>
         </div>
         <div className="mt-2 h-2 bg-zinc-300 dark:bg-zinc-600 rounded-full overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all ${remoteUsed > remoteLimit ? "bg-rose-500" : "bg-emerald-500"}`}
+            className={`h-full rounded-full transition-all ${remoteUsed > totalAvailable ? "bg-rose-500" : "bg-emerald-500"}`}
             style={{
-              width: `${remoteLimit > 0 ? Math.min((remoteUsed / remoteLimit) * 100, 100) : 0}%`,
+              width: `${totalAvailable > 0 ? Math.min((remoteUsed / totalAvailable) * 100, 100) : 0}%`,
             }}
           />
         </div>
