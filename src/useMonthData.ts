@@ -5,32 +5,41 @@ function storageKey(year: number, month: number) {
   return `office-days-${year}-${month}`;
 }
 
+function load(year: number, month: number): MonthData {
+  const stored = localStorage.getItem(storageKey(year, month));
+  return stored ? JSON.parse(stored) : {};
+}
+
 export function useMonthData(year: number, month: number) {
-  const [data, setData] = useState<MonthData>(() => {
-    const stored = localStorage.getItem(storageKey(year, month));
-    return stored ? JSON.parse(stored) : {};
-  });
+  const [state, setState] = useState(() => ({
+    year,
+    month,
+    data: load(year, month),
+  }));
+
+  if (state.year !== year || state.month !== month) {
+    setState({ year, month, data: load(year, month) });
+  }
 
   useEffect(() => {
-    const stored = localStorage.getItem(storageKey(year, month));
-    setData(stored ? JSON.parse(stored) : {});
-  }, [year, month]);
-
-  useEffect(() => {
-    localStorage.setItem(storageKey(year, month), JSON.stringify(data));
-  }, [data, year, month]);
+    if (Object.keys(state.data).length === 0) {
+      localStorage.removeItem(storageKey(state.year, state.month));
+    } else {
+      localStorage.setItem(storageKey(state.year, state.month), JSON.stringify(state.data));
+    }
+  }, [state]);
 
   function setDay(day: number, status: DayStatus | null) {
-    setData((prev: MonthData) => {
-      const next = { ...prev };
+    setState((prev) => {
+      const data = { ...prev.data };
       if (status === null) {
-        delete next[day];
+        delete data[day];
       } else {
-        next[day] = status;
+        data[day] = status;
       }
-      return next;
+      return { ...prev, data };
     });
   }
 
-  return { data, setDay };
+  return { data: state.data, setDay };
 }

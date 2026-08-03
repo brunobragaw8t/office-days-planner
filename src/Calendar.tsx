@@ -45,9 +45,8 @@ function getCarryOverBalance(
   month: number,
   limit: number
 ): number {
-  let firstY = year;
-  let firstM = month;
-  let foundFirst = false;
+  let totalUsed = 0;
+  let totalMonths = 0;
 
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
@@ -56,31 +55,13 @@ function getCarryOverBalance(
     if (!m) continue;
     const ky = Number(m[1]);
     const km = Number(m[2]);
-    if (!foundFirst || ky < firstY || (ky === firstY && km < firstM)) {
-      firstY = ky;
-      firstM = km;
-      foundFirst = true;
-    }
-  }
-
-  if (!foundFirst) return 0;
-
-  let totalUsed = 0;
-  let totalMonths = 0;
-  let curY = firstY;
-  let curM = firstM;
-
-  while (curY < year || (curY === year && curM < month)) {
-    const stored = localStorage.getItem(`office-days-${curY}-${curM}`);
-    if (stored) {
-      const data: MonthData = JSON.parse(stored);
-      for (const status of Object.values(data)) {
-        if (status === "remote") totalUsed++;
-      }
+    if (ky > year || (ky === year && km >= month)) continue;
+    const data: MonthData = JSON.parse(localStorage.getItem(key) as string);
+    if (Object.keys(data).length === 0) continue;
+    for (const status of Object.values(data)) {
+      if (status === "remote") totalUsed++;
     }
     totalMonths++;
-    curM++;
-    if (curM > 11) { curM = 0; curY++; }
   }
 
   return totalMonths * limit - totalUsed;
